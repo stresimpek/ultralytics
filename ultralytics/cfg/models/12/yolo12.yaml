@@ -24,27 +24,27 @@ head:
   - [-1, 1, nn.Upsample,    [None, 2, "nearest"]]
   - [[-1, 6], 1, Concat,    [1]]
   - [-1, 2, A2C2f,         [512, False, -1]]  # 11
-  - [-1, 1, SPPF,          [512, 5]]          # Mengganti CBAM dengan SPPF untuk fitur multi-skala
+  - [-1, 1, SPPF,          [512, 5]]          # 12: Mengganti CBAM dengan SPPF
   - [-1, 1, nn.Upsample,    [None, 2, "nearest"]]
   - [[-1, 4], 1, Concat,    [1]]
   - [-1, 2, A2C2f,         [256, False, -1]]  # 15
-  - [-1, 1, SPPF,          [256, 5]]          # Mengganti CBAM dengan SPPF untuk fitur multi-skala
+  - [-1, 1, SPPF,          [256, 5]]          # 16: Mengganti CBAM dengan SPPF
   
   # Path P3 -> P4
   - [-1, 1, Conv,          [256, 3, 2]]
-  - [[-1, 13], 1, Concat,  [1]]
+  - [[-1, 12], 1, Concat,  [1]]
   - [-1, 2, A2C2f,         [512, False, -1]]  # 19
-  - [-1, 1, ELAN,          [512]]             # Menggunakan ELAN untuk representasi fitur yang lebih kaya
+  - [-1, 1, SPPF,          [512, 5]]          # 20: SPPF standar
   
   # Path P4 -> P5
   - [-1, 1, Conv,          [512, 3, 2]]
   - [[-1, 8], 1, Concat,   [1]]
-  - [-1, 2, C3k2,          [1024, True]]      # 23 (P5/32)
+  - [-1, 2, C3k2,          [1024, True]]      # 23
   
-  # Tambahkan SE (Squeeze-and-Excitation) block pada masing-masing level
-  - [16, 1, SE,            [256]]             # 24 (P3/8)
-  - [20, 1, SE,            [512]]             # 25 (P4/16)
-  - [23, 1, SE,            [1024]]            # 26 (P5/32)
+  # Implementasi lightweight attention pada outputs
+  - [16, 1, SE,            [256, 8]]          # 24: SE block pada P3/8 dengan reduction ratio 8
+  - [20, 1, SE,            [512, 16]]         # 25: SE block pada P4/16 dengan reduction ratio 16
+  - [23, 1, SE,            [1024, 32]]        # 26: SE block pada P5/32 dengan reduction ratio 32
   
   # Detect
   - [[24, 25, 26], 1, Detect, [nc]]           # Detect(P3, P4, P5)
