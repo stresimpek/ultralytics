@@ -10,10 +10,13 @@ class SE(nn.Module):
     """
     def __init__(self, c, r=16):
         super().__init__()
+        # Ensure minimum of at least 1 channel after reduction
+        c_reduced = max(1, c // r)
+        
         self.avg_pool = nn.AdaptiveAvgPool2d(1)
-        self.fc1 = nn.Conv2d(c, c // r, kernel_size=1, bias=False)
+        self.fc1 = nn.Conv2d(c, c_reduced, kernel_size=1, bias=False)
         self.act = nn.SiLU(inplace=True)  # SiLU activation for better performance
-        self.fc2 = nn.Conv2d(c // r, c, kernel_size=1, bias=False)
+        self.fc2 = nn.Conv2d(c_reduced, c, kernel_size=1, bias=False)
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
