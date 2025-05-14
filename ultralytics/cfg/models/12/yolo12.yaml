@@ -41,10 +41,9 @@ head:
   - [[-1, 8], 1, Concat,   [1]]
   - [-1, 2, C3k2,          [1024, True]]      # 23
   
-  # Implementasi lightweight attention pada outputs
-  - [16, 1, SE,            [256, 8]]          # 24: SE block pada P3/8 dengan reduction ratio 8
-  - [20, 1, SE,            [512, 16]]         # 25: SE block pada P4/16 dengan reduction ratio 16
-  - [23, 1, SE,            [1024, 32]]        # 26: SE block pada P5/32 dengan reduction ratio 32
+  - [16, 1, SE,            [256, 4]]          # 24: SE block pada P3/8 dengan reduction ratio 4
+  - [20, 1, SE,            [512, 8]]          # 25: SE block pada P4/16 dengan reduction ratio 8
+  - [23, 1, SE,            [1024, 16]]         # 26: SE block pada P5/32 dengan reduction ratio 32
   
   # Detect
   - [[24, 25, 26], 1, Detect, [nc]]           # Detect(P3, P4, P5)
