@@ -1510,16 +1510,6 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             if c2 != nc:
                 c2 = make_divisible(min(c2, max_channels) * width, 8)
             args = [c1, *args[1:]]
-        elif m is SE:
-            c1, r = ch[f], args[0] if len(args) > 0 else 16
-            args = [c1, r]
-            m_ = m(*args)
-            t = str(m)[8:-2].replace('__main__.', '')  # module name
-            np = sum(x.numel() for x in m_.parameters())  # number of parameters
-            m_.i, m_.f, m_.type = i, f, t  # attach index, 'from' index, type
-            LOGGER.info(f'{i:>3}{str(f):>20}{np:10.0f}  {t:<45}{str(args):<30}')  # print
-            save.extend(x % i for x in ([f] if isinstance(f, int) else f) if x != -1)  # append to savelist
-            layers.append(m_)
         elif m is BiFPN:
             assert len(args) == 3, f"BiFPN requires 3 channel arguments, got {len(args)}"
             p5_channels, p4_channels, p3_channels = args
