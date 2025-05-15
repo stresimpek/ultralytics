@@ -1509,17 +1509,14 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 c2 = make_divisible(min(c2, max_channels) * width, 8)
             args = [c1, *args[1:]]
         elif m is BiFPN:
-            assert len(args) == 3, f"BiFPN requires 3 channel arguments, got {len(args)}"
-            p5_channels, p4_channels, p3_channels = args
-            c2 = p3_channels  # output channels
-            m_ = getattr(common, m + 'Block')(p5_channels, p4_channels, p3_channels)  # module with additional arguments
-            t = str(m) + "_" + str(np.random.randint(1000))  # layer name
-        elif m in ASFF:
-            assert len(args) == 3, f"ASFF requires 3 channel arguments, got {len(args)}"
-            level0_channels, level1_channels, level2_channels = args
-            c2 = level0_channels  # output channels
-            m_ = getattr(common, m + 'Block')(level0_channels, level1_channels, level2_channels)  # module with additional arguments
-            t = str(m) + "_" + str(np.random.randint(1000))  # layer name
+            # BiFPN merges three levels, expects specific channel args
+            c1 = ch[f]  # list of three inputs
+            c2 = args[0]  # p5 channels
+        elif m is ASFF:
+            # ASFF fuses multi-scale features
+            # args: [p3_ch, p4_ch, p5_ch]
+            c1 = [ch[x] for x in from_]  # channels of the three inputs
+            c2 = args[0]  # output channel matches p3
         else:
             c2 = ch[f]
 
