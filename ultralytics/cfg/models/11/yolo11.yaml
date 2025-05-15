@@ -1,6 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-
-# Ultralytics YOLO11 object detection model with P3/8 - P5/32 outputs
+# Improved YOLO11 with ASFF, BiFPN, and CBAM for enhanced object detection
 # Model docs: https://docs.ultralytics.com/models/yolo11
 # Task docs: https://docs.ultralytics.com/tasks/detect
 
@@ -13,6 +12,9 @@ scales: # model compound scaling constants, i.e. 'model=yolo11n.yaml' will call 
   m: [0.50, 1.00, 512] # summary: 231 layers, 20114688 parameters, 20114672 gradients, 68.5 GFLOPs
   l: [1.00, 1.00, 512] # summary: 357 layers, 25372160 parameters, 25372144 gradients, 87.6 GFLOPs
   x: [1.00, 1.50, 512] # summary: 357 layers, 56966176 parameters, 56966160 gradients, 196.0 GFLOPs
+
+# Note: ASFF, CBAM, and BiFPN modules must be implemented in the Python code
+# These modules are referenced in the architecture below
 
 # YOLO11n backbone
 backbone:
@@ -28,23 +30,41 @@ backbone:
   - [-1, 2, C3k2, [1024, True]]
   - [-1, 1, SPPF, [1024, 5]] # 9
   - [-1, 2, C2PSA, [1024]] # 10
+  - [-1, 1, CBAM, []] # 11: Add CBAM after C2PSA to enhance feature sensitivity
 
-# YOLO11n head
+# Improved YOLO11n head with BiFPN and ASFF
 head:
-  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
-  - [[-1, 6], 1, Concat, [1]] # cat backbone P4
-  - [-1, 2, C3k2, [512, False]] # 13
-
-  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
-  - [[-1, 4], 1, Concat, [1]] # cat backbone P3
-  - [-1, 2, C3k2, [256, False]] # 16 (P3/8-small)
-
-  - [-1, 1, Conv, [256, 3, 2]]
-  - [[-1, 13], 1, Concat, [1]] # cat head P4
-  - [-1, 2, C3k2, [512, False]] # 19 (P4/16-medium)
-
-  - [-1, 1, Conv, [512, 3, 2]]
-  - [[-1, 10], 1, Concat, [1]] # cat head P5
-  - [-1, 2, C3k2, [1024, True]] # 22 (P5/32-large)
-
-  - [[16, 19, 22], 1, Detect, [nc]] # Detect(P3, P4, P5)
+  # Replace FPN+PAN with BiFPN for bidirectional feature fusion
+  - [-1, 1, BiFPN, []] # 12: BiFPN block for P5
+  
+  # Upsampling path - P5 to P4
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]] # 13
+  - [[-1, 6], 1, Concat, [1]] # 14: cat backbone P4
+  - [-1, 2, C3k2, [512, False]] # 15
+  - [-1, 1, BiFPN, []] # 16: BiFPN block for P4
+  - [-1, 1, CBAM, []] # 17: Add CBAM to P4 features
+  
+  # Upsampling path - P4 to P3
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]] # 18
+  - [[-1, 4], 1, Concat, [1]] # 19: cat backbone P3
+  - [-1, 2, C3k2, [256, False]] # 20: P3/8-small
+  - [-1, 1, BiFPN, []] # 21: BiFPN block for P3
+  - [-1, 1, CBAM, []] # 22: Add CBAM to P3 features
+  
+  # Downsampling path - P3 to P4
+  - [-1, 1, Conv, [256, 3, 2]] # 23
+  - [[-1, 17], 1, Concat, [1]] # 24: cat with P4 features
+  - [-1, 2, C3k2, [512, False]] # 25: P4/16-medium
+  - [-1, 1, CBAM, []] # 26: Add CBAM to P4 features
+  
+  # Downsampling path - P4 to P5
+  - [-1, 1, Conv, [512, 3, 2]] # 27
+  - [[-1, 12], 1, Concat, [1]] # 28: cat with P5 features
+  - [-1, 2, C3k2, [1024, True]] # 29: P5/32-large
+  - [-1, 1, CBAM, []] # 30: Add CBAM to P5 features
+  
+  # ASFF for integrating multi-scale features before detection
+  - [[22, 26, 30], 1, ASFF, []] # 31: ASFF block for adaptive spatial feature fusion
+  
+  # Detection head for multi-scale feature detection
+  - [-1, 1, Detect, [nc]] # 32: Detect with ASFF-enhanced features
