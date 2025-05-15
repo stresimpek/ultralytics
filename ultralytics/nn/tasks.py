@@ -69,7 +69,9 @@ from ultralytics.nn.modules import (
     YOLOESegment,
     v10Detect,
     CBAM,
-    SE
+    SE,
+    BiFPN,
+    ASFF
 )
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, YAML, colorstr, emojis
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
@@ -1517,6 +1519,18 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             LOGGER.info(f'{i:>3}{str(f):>20}{np:10.0f}  {t:<45}{str(args):<30}')  # print
             save.extend(x % i for x in ([f] if isinstance(f, int) else f) if x != -1)  # append to savelist
             layers.append(m_)
+        elif m is BiFPN:
+            assert len(args) == 3, f"BiFPN requires 3 channel arguments, got {len(args)}"
+            p5_channels, p4_channels, p3_channels = args
+            c2 = p3_channels  # output channels
+            m_ = getattr(common, m + 'Block')(p5_channels, p4_channels, p3_channels)  # module with additional arguments
+            t = str(m) + "_" + str(np.random.randint(1000))  # layer name
+        elif m in ASFF:
+            assert len(args) == 3, f"ASFF requires 3 channel arguments, got {len(args)}"
+            level0_channels, level1_channels, level2_channels = args
+            c2 = level0_channels  # output channels
+            m_ = getattr(common, m + 'Block')(level0_channels, level1_channels, level2_channels)  # module with additional arguments
+            t = str(m) + "_" + str(np.random.randint(1000))  # layer name
         else:
             c2 = ch[f]
 
