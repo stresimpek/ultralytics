@@ -180,5 +180,7 @@ __all__ = (
     "TorchVision",
     "Index",
     "A2C2f",
-    "SE"
+    "SE",
+    "BiFPN",
+    "ASFF"
 )
