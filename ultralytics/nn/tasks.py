@@ -69,7 +69,6 @@ from ultralytics.nn.modules import (
     YOLOESegment,
     v10Detect,
     CBAM,
-    SE,
     BiFPN,
     ASFF
 )
