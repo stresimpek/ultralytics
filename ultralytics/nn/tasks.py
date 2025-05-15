@@ -1508,15 +1508,6 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             if c2 != nc:
                 c2 = make_divisible(min(c2, max_channels) * width, 8)
             args = [c1, *args[1:]]
-        elif m is BiFPN:
-            # BiFPN merges three levels, expects specific channel args
-            c1 = ch[f]  # list of three inputs
-            c2 = args[0]  # p5 channels
-        elif m is ASFF:
-            # ASFF fuses multi-scale features
-            # args: [p3_ch, p4_ch, p5_ch]
-            c1 = [ch[x] for x in from_]  # channels of the three inputs
-            c2 = args[0]  # output channel matches p3
         else:
             c2 = ch[f]
 
